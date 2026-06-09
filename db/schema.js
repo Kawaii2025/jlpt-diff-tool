@@ -1,11 +1,12 @@
 import 'dotenv/config'
 import fs from 'node:fs'
 import path from 'node:path'
-import { neon } from '@neondatabase/serverless'
+import { Pool } from '@neondatabase/serverless'
 
-const sql = neon(process.env.DATABASE_URL || '')
+const pool = new Pool({ connectionString: process.env.DATABASE_URL })
 const schemaPath = path.resolve('db/schema.sql')
 const schema = fs.readFileSync(schemaPath, 'utf8')
 
-await sql.unsafe(schema)
+await pool.query(schema)
+await pool.end()
 console.log('schema applied ✓')
