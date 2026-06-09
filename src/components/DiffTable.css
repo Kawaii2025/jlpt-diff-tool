@@ -1,0 +1,45 @@
+.table-card {
+  background: #fff;
+  border-radius: 8px;
+  box-shadow: 0 2px 14px #e2e8f0;
+  overflow: hidden;
+  margin-top: 20px;
+}
+
+.diff-table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+.diff-table th,
+.diff-table td {
+  padding: 15px 18px;
+  border-bottom: 1px solid #eee;
+  vertical-align: top;
+  line-height: 1.7;
+}
+
+.diff-table th {
+  background: #eff6ff;
+  color: #1e40af;
+}
+
+.diff-table .idx {
+  width: 65px;
+  background: #f8fafc;
+  color: #666;
+  text-align: center;
+}
+
+.diff-table .colA,
+.diff-table .colB {
+  width: 48%;
+}
+
+.diff-table tbody tr:nth-child(even) td:not(.idx) {
+  background: #f8fbff;
+}
+
+.empty-tip {
+  color: #e53e3e;
+}
