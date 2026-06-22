@@ -1,0 +1,83 @@
+{
+  "version": "2.0.0",
+  "tasks": [
+    {
+      "type": "npm",
+      "script": "dev",
+      "label": "npm: dev (frontend)",
+      "detail": "Vite dev server — http://localhost:5173",
+      "group": "build",
+      "isBackground": true,
+      "presentation": {
+        "reveal": "always",
+        "panel": "new",
+        "group": "dev-frontend"
+      },
+      "problemMatcher": {
+        "owner": "vite",
+        "fileLocation": "absolute",
+        "pattern": {
+          "regexp": "^(.*)\\s+(\\d+):(\\d+)\\s+(error|warning)\\s+(.*)$",
+          "file": 1,
+          "line": 2,
+          "column": 3,
+          "severity": 4,
+          "message": 5
+        },
+        "background": {
+          "activeOnStart": true,
+          "beginsPattern": "^(VITE|vite)\\s",
+          "endsPattern": "(Local:\\s+http|ready in|\\\\$\\\\$vite\\\\$\\\\$ server started)"
+        }
+      }
+    },
+    {
+      "type": "npm",
+      "script": "dev:server",
+      "label": "npm: dev:server (backend)",
+      "detail": "Express API + Neon — http://localhost:4000",
+      "group": "build",
+      "isBackground": true,
+      "presentation": {
+        "reveal": "always",
+        "panel": "new",
+        "group": "dev-backend"
+      },
+      "problemMatcher": {
+        "owner": "node",
+        "fileLocation": "absolute",
+        "pattern": {
+          "regexp": "^(.*)\\$(\\d+),(\\d+)\\$:\\s+(error|warning)\\s+(.*)$",
+          "file": 1,
+          "line": 2,
+          "column": 3,
+          "severity": 4,
+          "message": 5
+        },
+        "background": {
+          "activeOnStart": true,
+          "beginsPattern": "^\\s*$",
+          "endsPattern": "listening on http://localhost"
+        }
+      }
+    },
+    {
+      "label": "dev: all (frontend + backend)",
+      "dependsOn": ["npm: dev (frontend)", "npm: dev:server (backend)"],
+      "dependsOrder": "parallel",
+      "group": {
+        "kind": "build",
+        "isDefault": true
+      },
+      "problemMatcher": []
+    },
+    {
+      "type": "npm",
+      "script": "build",
+      "label": "npm: build",
+      "detail": "vite build (production bundle → dist/)",
+      "group": "build",
+      "problemMatcher": []
+    }
+  ]
+}

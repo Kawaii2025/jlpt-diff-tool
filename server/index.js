@@ -16,7 +16,7 @@ const pool = new Pool({ connectionString: process.env.DATABASE_URL })
 app.get('/api/exams', async (req, res) => {
   try {
     const { rows } = await pool.query(`
-      SELECT id, title, level, exam_year, exam_season, note,
+      SELECT id, slug, title, level, exam_year, exam_season, note,
              created_at, updated_at
         FROM exam
        ORDER BY exam_year DESC NULLS LAST,
@@ -48,18 +48,19 @@ app.get('/api/exams/meta', async (req, res) => {
   }
 })
 
-app.get('/api/exams/:id', async (req, res) => {
+app.get('/api/exams/:idOrSlug', async (req, res) => {
   try {
-    const id = Number(req.params.id)
-    if (!Number.isInteger(id) || id <= 0) {
-      return res.status(400).json({ error: 'invalid id' })
-    }
-    const { rows } = await pool.query(
-      `SELECT id, title, level, exam_year, exam_season, content,
-              note, created_at, updated_at
-         FROM exam WHERE id = $1`,
-      [id],
-    )
+    const key = req.params.idOrSlug
+    const isNumeric = /^\d+$/.test(key)
+    const sql = isNumeric
+      ? `SELECT id, slug, title, level, exam_year, exam_season, content,
+                note, created_at, updated_at
+           FROM exam WHERE id = $1`
+      : `SELECT id, slug, title, level, exam_year, exam_season, content,
+                note, created_at, updated_at
+           FROM exam WHERE slug = $1`
+
+    const { rows } = await pool.query(sql, [key])
     if (!rows.length) return res.status(404).json({ error: 'not found' })
     res.json(rows[0])
   } catch (err) {
@@ -77,7 +78,7 @@ app.post('/api/exams', async (req, res) => {
     const { rows } = await pool.query(
       `INSERT INTO exam (title, level, exam_year, exam_season, content, note)
        VALUES ($1, $2, $3, $4, $5, $6)
-       RETURNING id, title, level, exam_year, exam_season, created_at`,
+       RETURNING id, slug, title, level, exam_year, exam_season, created_at`,
       [title, level, exam_year ?? null, exam_season ?? null, content, note ?? null],
     )
     res.status(201).json(rows[0])
@@ -88,8 +89,12 @@ app.post('/api/exams', async (req, res) => {
 })
 
 const distDir = path.resolve(__dirname, '..', 'dist')
-app.use(express.static(distDir))
-app.get('*', (_req, res) => {
+app.use((req, res, next) => {
+  if (req.path.startsWith('/api')) return next()
+  express.static(distDir)(req, res, next)
+})
+app.get('*', (req, res, next) => {
+  if (req.path.startsWith('/api')) return next()
   res.sendFile(path.join(distDir, 'index.html'))
 })
 

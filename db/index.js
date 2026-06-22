@@ -4,20 +4,28 @@ const sql = neon(process.env.DATABASE_URL || '')
 
 export async function listExams(limit = 50) {
   return sql`
-    SELECT id, title, level, exam_year, exam_season, note, created_at, updated_at
+    SELECT id, slug, title, level, exam_year, exam_season, note, created_at, updated_at
       FROM exam
-     ORDER BY exam_year DESC NULLS LAST, created_at DESC
+     ORDER BY exam_year DESC NULLS LAST,
+              ARRAY_POSITION(ARRAY['N1','N2','N3','N4','N5'], level) ASC,
+              created_at DESC
      LIMIT ${limit}
   `
 }
 
-export async function getExam(id) {
-  const rows = await sql`
-    SELECT id, title, level, exam_year, exam_season, content, note,
-           created_at, updated_at
-      FROM exam
-     WHERE id = ${id}
-  `
+export async function getExam(idOrSlug) {
+  const key = String(idOrSlug)
+  const rows = /^\d+$/.test(key)
+    ? await sql`
+        SELECT id, slug, title, level, exam_year, exam_season, content, note,
+               created_at, updated_at
+          FROM exam WHERE id = ${Number(key)}
+      `
+    : await sql`
+        SELECT id, slug, title, level, exam_year, exam_season, content, note,
+               created_at, updated_at
+          FROM exam WHERE slug = ${key}
+      `
   return rows[0] || null
 }
 
@@ -26,7 +34,7 @@ export async function insertExam({ title, level, exam_year, exam_season, content
     INSERT INTO exam (title, level, exam_year, exam_season, content, note)
     VALUES (${title}, ${level}, ${exam_year ?? null}, ${exam_season ?? null},
             ${content}, ${note ?? null})
-    RETURNING id, title, level, exam_year, exam_season, created_at
+    RETURNING id, slug, title, level, exam_year, exam_season, created_at
   `
   return rows[0]
 }
@@ -43,7 +51,7 @@ export async function updateExam(id, patch) {
            note       = COALESCE(${note ?? null}, note),
            updated_at = now()
      WHERE id = ${id}
-    RETURNING id, title, level, exam_year, exam_season, updated_at
+    RETURNING id, slug, title, level, exam_year, exam_season, updated_at
   `
   return rows[0] || null
 }
@@ -55,7 +63,7 @@ export async function deleteExam(id) {
 export async function searchExams(keyword, limit = 30) {
   const q = `%${keyword}%`
   return sql`
-    SELECT id, title, level, exam_year, exam_season, note, created_at
+    SELECT id, slug, title, level, exam_year, exam_season, note, created_at
       FROM exam
      WHERE title ILIKE ${q}
         OR content ILIKE ${q}

@@ -14,7 +14,7 @@ function App() {
   const [loadingList, setLoadingList] = useState(false)
   const [loadingExam, setLoadingExam] = useState(false)
   const [error, setError] = useState('')
-  const [selectedId, setSelectedId] = useState('')
+  const [selectedKey, setSelectedKey] = useState('')
   const [currentExam, setCurrentExam] = useState(null)
 
   const [filterLevel, setFilterLevel] = useState('')
@@ -47,20 +47,20 @@ function App() {
     [exams],
   )
 
-  const handleSelectExam = async (id) => {
-    if (!id) {
-      setSelectedId('')
+  const handleSelectExam = async (key) => {
+    if (!key) {
+      setSelectedKey('')
       setCurrentExam(null)
       return
     }
     setLoadingExam(true)
     setError('')
     try {
-      const exam = await fetchExam(id)
+      const exam = await fetchExam(key)
       setCurrentExam(exam)
       setSource(exam.content || '')
       setRows(parseSource(exam.content || ''))
-      setSelectedId(id)
+      setSelectedKey(key)
     } catch (e) {
       setError(e.message)
     } finally {
@@ -102,14 +102,14 @@ function App() {
           <label>
             试卷：
             <select
-              value={selectedId}
+              value={selectedKey}
               onChange={(e) => handleSelectExam(e.target.value)}
               disabled={loadingList}
             >
               <option value="">-- {loadingList ? '加载中…' : '请选择试卷'} --</option>
               {filteredExams.map((e) => (
-                <option key={e.id} value={e.id}>
-                  [{e.level}] {e.title} {e.exam_year ? `(${e.exam_year}${e.exam_season ? '年' + e.exam_season : ''})` : ''}
+                <option key={e.id} value={e.slug || e.id}>
+                  {e.slug || `id:${e.id}`}  ·  [{e.level}] {e.title}
                 </option>
               ))}
             </select>
@@ -117,7 +117,7 @@ function App() {
         </div>
         {currentExam && (
           <div className="exam-meta">
-            已加载：<b>{currentExam.title}</b> · {currentExam.level}
+            已加载：<b>{currentExam.slug || currentExam.title}</b> · {currentExam.level}
             {currentExam.exam_year ? ` · ${currentExam.exam_year}年` : ''}
             {currentExam.exam_season || ''}
             {loadingExam && '（加载中…）'}

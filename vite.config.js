@@ -8,4 +8,12 @@ const repo = process.env.GITHUB_REPOSITORY
 export default defineConfig({
   plugins: [react()],
   base: repo,
+  server: {
+    proxy: {
+      '/api': {
+        target: 'http://localhost:4000',
+        changeOrigin: true,
+      },
+    },
+  },
 })
